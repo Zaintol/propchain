@@ -10,11 +10,54 @@ type WalletModalProps = {
 
 export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }: WalletModalProps) => {
   const { account, isConnecting, error, connect } = useWallet();
+  const [verifying, setVerifying] = React.useState(false);
+  const [verified, setVerified] = React.useState<boolean>(false);
+  const [verifyError, setVerifyError] = React.useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const hasEthereum = typeof window !== 'undefined' && !!window.ethereum;
   const hasMetaMask = hasEthereum && !!window.ethereum?.isMetaMask;
+
+  const handleVerify = async () => {
+    if (!account || !window.ethereum) return;
+    setVerifying(true);
+    setVerifyError(null);
+    try {
+      const arr = new Uint32Array(1);
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        crypto.getRandomValues(arr);
+      } else {
+        arr[0] = Math.floor(Math.random() * 1e9);
+      }
+      const nonce = arr[0].toString();
+      const message = `PropChain sign-in – Nonce: ${nonce}`;
+      const signature = await window.ethereum.request<string>({
+        method: 'personal_sign',
+        params: [message, account],
+      });
+      const recovered = await window.ethereum.request<string>({
+        method: 'personal_ecRecover',
+        params: [message, signature as unknown as string],
+      });
+      if (recovered && recovered.toLowerCase() === account.toLowerCase()) {
+        setVerified(true);
+      } else {
+        setVerifyError('Signature does not match connected account');
+        setVerified(false);
+      }
+    } catch (e: unknown) {
+      const anyErr = e as { code?: number | string; message?: string };
+      if (anyErr?.code === 4001) {
+        setVerifyError('Signature request rejected');
+      } else {
+        setVerifyError(anyErr?.message || 'Failed to verify signature');
+      }
+      setVerified(false);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -39,6 +82,37 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }: Wal
             </div>
             <div className="text-sm text-gray-600">
               You are connected with <span className="font-medium">{truncateAddress(account)}</span>.
+            </div>
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <span className="font-medium">Ownership Verification</span>
+                  <div className="text-gray-600">
+                    Sign a message to prove address ownership.
+                  </div>
+                </div>
+                <button
+                  onClick={handleVerify}
+                  disabled={verifying || verified}
+                  className={`w-1/2 px-3 py-2 rounded-lg text-white text-sm ${
+                    verified
+                      ? 'bg-emerald-500 cursor-default'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } ${verifying ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  {verified ? 'Verified' : verifying ? 'Verifying...' : 'Verify Ownership'}
+                </button>
+              </div>
+              {verifyError && (
+                <div className="mt-2 p-2 rounded bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {verifyError}
+                </div>
+              )}
+              {verified && (
+                <div className="mt-2 p-2 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+                  Address verified successfully.
+                </div>
+              )}
             </div>
             <div className="flex justify-end">
               <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onClick={onClose}>

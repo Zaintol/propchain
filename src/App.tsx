@@ -8,6 +8,7 @@ import { FavoritesPage } from './pages/FavoritesPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { WalletProvider } from './contexts/WalletContext';
 import { WalletModal } from './components/Wallet/WalletModal';
+import { NetworkNotice } from './components/Wallet/NetworkNotice';
 
 const AppContent: React.FC = () => {
   const [favorites, setFavorites] = useState(['1', '4']);
@@ -34,6 +35,7 @@ const AppContent: React.FC = () => {
       <Navbar 
         onOpenWalletModal={onOpenWalletModal}
       />
+      <NetworkNotice />
       <WalletModal isOpen={isWalletModalOpen} onClose={onCloseWalletModal} />
       
       <Routes>
