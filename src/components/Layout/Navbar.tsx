@@ -1,14 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, User, Wallet } from 'lucide-react';
+import { useWallet } from '../../contexts/WalletContext';
+import { truncateAddress } from '../../utils/format';
 
 interface NavbarProps {
-  onConnectWallet: () => void;
-  walletConnected: boolean;
+  onOpenWalletModal: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onConnectWallet, walletConnected }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenWalletModal }) => {
   const location = useLocation();
+  const { account } = useWallet();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -72,16 +74,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onConnectWallet, walletConnected
 
           <div className="flex items-center space-x-4">
             <button
-              onClick={onConnectWallet}
+              onClick={onOpenWalletModal}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                walletConnected
+                account
                   ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                   : 'bg-gradient-to-r from-blue-600 to-emerald-500 text-white hover:from-blue-700 hover:to-emerald-600 shadow-lg hover:shadow-xl transform hover:scale-105'
               }`}
             >
               <Wallet className="w-4 h-4" />
               <span className="hidden sm:block">
-                {walletConnected ? 'Wallet Connected' : 'Connect Wallet'}
+                {account ? truncateAddress(account) : 'Connect Wallet'}
               </span>
             </button>
           </div>

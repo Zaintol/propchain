@@ -1,16 +1,16 @@
 import React from 'react';
 import { User, Wallet, Heart, Search, TrendingUp, Star, Shield } from 'lucide-react';
 import { mockUser, mockMarketData } from '../data/mockData';
+import { useWallet } from '../contexts/WalletContext';
 
 interface DashboardPageProps {
-  walletConnected: boolean;
-  onConnectWallet: () => void;
+  onOpenWalletModal: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ 
-  walletConnected, 
-  onConnectWallet 
+  onOpenWalletModal 
 }) => {
+  const { account, disconnect } = useWallet();
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50/30 to-blue-50/30 relative overflow-hidden">
       {/* Background Elements */}
@@ -67,11 +67,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Wallet Status</p>
-                <p className={`text-sm font-semibold ${walletConnected ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {walletConnected ? 'Connected' : 'Disconnected'}
+                <p className={`text-sm font-semibold ${account ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {account ? 'Connected' : 'Disconnected'}
                 </p>
               </div>
-              <Wallet className={`w-8 h-8 ${walletConnected ? 'text-emerald-500' : 'text-gray-400'}`} />
+              <Wallet className={`w-8 h-8 ${account ? 'text-emerald-500' : 'text-gray-400'}`} />
             </div>
           </div>
         </div>
@@ -141,16 +141,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {/* Wallet Section */}
             <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
               <h3 className="text-xl font-semibold mb-6">Wallet Connection</h3>
-              {walletConnected ? (
+              {account ? (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
                     <span className="text-emerald-600 font-medium">Wallet Connected</span>
                   </div>
                   <div className="text-sm text-gray-600 break-all bg-gray-50 p-3 rounded-lg">
-                    0x742d35cc6634C0532925a3b8D6aD8a7e15b2a9d1
+                    {account}
                   </div>
-                  <button className="w-full border border-red-300 text-red-600 hover:bg-red-50 py-2 px-4 rounded-lg transition-colors">
+                  <button
+                    onClick={disconnect}
+                    className="w-full border border-red-300 text-red-600 hover:bg-red-50 py-2 px-4 rounded-lg transition-colors"
+                  >
                     Disconnect Wallet
                   </button>
                 </div>
@@ -160,7 +163,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-600 mb-4">Connect your wallet to access NFT properties and blockchain features.</p>
                     <button
-                      onClick={onConnectWallet}
+                      onClick={onOpenWalletModal}
                       className="w-full bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-700 hover:to-emerald-600 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300"
                     >
                       Connect Wallet

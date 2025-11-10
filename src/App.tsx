@@ -6,23 +6,21 @@ import { ListingsPage } from './pages/ListingsPage';
 import { PropertyDetailPage } from './pages/PropertyDetailPage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { WalletProvider } from './contexts/WalletContext';
+import { WalletModal } from './components/Wallet/WalletModal';
 
 const AppContent: React.FC = () => {
-  const [walletConnected, setWalletConnected] = useState(false);
   const [favorites, setFavorites] = useState(['1', '4']);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleConnectWallet = () => {
-    // Mock wallet connection with animation
-    setTimeout(() => {
-      setWalletConnected(!walletConnected);
-    }, 1000);
-  };
+  const onOpenWalletModal = () => setIsWalletModalOpen(true);
+  const onCloseWalletModal = () => setIsWalletModalOpen(false);
 
   const handleToggleFavorite = (propertyId: string) => {
-    setFavorites(prev => 
+    setFavorites((prev: string[]) => 
       prev.includes(propertyId)
-        ? prev.filter(id => id !== propertyId)
+        ? prev.filter((id: string) => id !== propertyId)
         : [...prev, propertyId]
     );
   };
@@ -34,9 +32,9 @@ const AppContent: React.FC = () => {
   return (
     <>
       <Navbar 
-        onConnectWallet={handleConnectWallet}
-        walletConnected={walletConnected}
+        onOpenWalletModal={onOpenWalletModal}
       />
+      <WalletModal isOpen={isWalletModalOpen} onClose={onCloseWalletModal} />
       
       <Routes>
         <Route 
@@ -75,8 +73,7 @@ const AppContent: React.FC = () => {
           path="/dashboard" 
           element={
             <DashboardPage 
-              walletConnected={walletConnected}
-              onConnectWallet={handleConnectWallet}
+              onOpenWalletModal={onOpenWalletModal}
             />
           } 
         />
@@ -87,9 +84,11 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <WalletProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </WalletProvider>
   );
 }
 
